@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:signuplogin/screens/login.dart';
+import 'package:signuplogin/services/authentication.dart';
 import 'package:signuplogin/widgets/custom_field.dart';
 
 class SignUp extends StatefulWidget {
@@ -34,15 +36,23 @@ class _SignUpState extends State<SignUp> {
             CustomField(
               title: 'Username',
               controller: username,
+              validator: (value) {
+                return null;
+              },
             ),
             CustomField(
               title: 'Password',
               controller: password,
               isPassword: true,
+              validator: (value) {
+                return null;
+              },
             ),
             InkWell(
                 onTap: () {
-                  if (_formKey.currentState!.validate()) {}
+                  if (_formKey.currentState!.validate()) {
+                    signup(username.text, password.text);
+                  }
                 },
                 child: _submitButton()),
             _loginAccountLabel()
@@ -50,6 +60,33 @@ class _SignUpState extends State<SignUp> {
         ),
       ),
     );
+  }
+
+  signup(email, password) async {
+    Map data = {
+      'email': email,
+      'password': password,
+    };
+
+    final response = await Authentication().signUp(data);
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> resposne = jsonDecode(response.body);
+      if (resposne['success']) {
+        Map<String, dynamic> user = resposne;
+
+        myScakbar(resposne['message'] + " " + user["email"]);
+      } else {
+        myScakbar(resposne['message']);
+      }
+    } else {
+      myScakbar('Something Went Wrong!');
+    }
+  }
+
+  myScakbar(message) {
+    final snackBar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   Widget _title() {
