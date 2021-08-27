@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:signuplogin/services/authentication.dart';
 import 'package:signuplogin/widgets/custom_field.dart';
+
+import '../main.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -46,7 +50,9 @@ class _LoginState extends State<Login> {
             ),
             InkWell(
                 onTap: () {
-                  if (_formKey.currentState!.validate()) {}
+                  if (_formKey.currentState!.validate()) {
+                    login(username.text, password.text);
+                  }
                 },
                 child: _submitButton()),
             _loginAccountLabel()
@@ -56,28 +62,37 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Widget _entryField(String title, {bool isPassword = false}) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          TextField(
-              obscureText: isPassword,
-              decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  fillColor: Color(0xfff3f3f4),
-                  filled: true))
-        ],
-      ),
-    );
+  login(email, password) async {
+    Map data = {
+      'email': email,
+      'password': password,
+    };
+
+    final response = await Authentication().login(data);
+
+    if (response.statusCode == 200) {
+      Map<String, dynamic> resposne = jsonDecode(response.body);
+      if (resposne['success']) {
+        Map<String, dynamic> user = resposne;
+
+        await Authentication().saveUserToLocal(resposne['token']);
+
+        myScakbar(resposne['message'] + " " + user["email"]);
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (BuildContext context) => const UserChecker()));
+      } else {
+        myScakbar(resposne['message']);
+      }
+    } else {
+      myScakbar('Something Went Wrong!');
+    }
+  }
+
+  myScakbar(message) {
+    final snackBar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   Widget _title() {

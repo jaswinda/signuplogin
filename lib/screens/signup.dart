@@ -45,7 +45,11 @@ class _SignUpState extends State<SignUp> {
               controller: password,
               isPassword: true,
               validator: (value) {
-                return null;
+                if (value.toString().length < 6) {
+                  return "Password must be greater then 5 characters";
+                } else {
+                  return null;
+                }
               },
             ),
             InkWell(
