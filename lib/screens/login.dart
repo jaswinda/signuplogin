@@ -16,6 +16,7 @@ class _LoginState extends State<Login> {
   TextEditingController username = TextEditingController();
   TextEditingController password = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -48,13 +49,15 @@ class _LoginState extends State<Login> {
                 return null;
               },
             ),
-            InkWell(
-                onTap: () {
-                  if (_formKey.currentState!.validate()) {
-                    login(username.text, password.text);
-                  }
-                },
-                child: _submitButton()),
+            isLoading
+                ? const CircularProgressIndicator()
+                : InkWell(
+                    onTap: () {
+                      if (_formKey.currentState!.validate()) {
+                        login(username.text, password.text);
+                      }
+                    },
+                    child: _submitButton()),
             _loginAccountLabel()
           ]),
         ),
@@ -67,10 +70,10 @@ class _LoginState extends State<Login> {
       'email': email,
       'password': password,
     };
-
+    changeLoadingState();
     final response = await Authentication().login(data);
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 && response != null) {
       Map<String, dynamic> resposne = jsonDecode(response.body);
       if (resposne['success']) {
         Map<String, dynamic> user = resposne;
@@ -88,6 +91,13 @@ class _LoginState extends State<Login> {
     } else {
       myScakbar('Something Went Wrong!');
     }
+    changeLoadingState();
+  }
+
+  changeLoadingState() {
+    setState(() {
+      isLoading = !isLoading;
+    });
   }
 
   myScakbar(message) {
