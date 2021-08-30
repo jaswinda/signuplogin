@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:signuplogin/models/product.dart';
@@ -16,6 +17,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isLoading = false;
+  int order_qnty = 1;
+  double order_total = 0;
   List<Product> list = [];
 
   @override
@@ -61,6 +64,10 @@ class _HomeState extends State<Home> {
           showIfClosed: false,
         ),
       ],
+      body: Padding(
+        padding: const EdgeInsets.only(top: 50.0),
+        child: allProducts(),
+      ),
       builder: (context, transition) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(8),
@@ -69,10 +76,39 @@ class _HomeState extends State<Home> {
             elevation: 4.0,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: Colors.accents.map((color) {
-                return Container(
-                  height: 112,
-                  color: color,
+              children: list.map((Product prduct) {
+                return Padding(
+                  padding: const EdgeInsets.all(5.0),
+                  child: Card(
+                    shadowColor: Colors.black,
+                    elevation: 10,
+                    child: Container(
+                        color: Colors.blue[50],
+                        height: 80,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            SizedBox(
+                                width: 80,
+                                child: Image.network(
+                                  prduct.image,
+                                  fit: BoxFit.fitWidth,
+                                )),
+                            Text(
+                              prduct.name,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                            Text(prduct.price.toString(),
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold))
+                          ],
+                        )),
+                  ),
                 );
               }).toList(),
             ),
@@ -80,6 +116,107 @@ class _HomeState extends State<Home> {
         );
       },
     );
+  }
+
+  _modalBottomSheetMenu(name, image, price) {
+    showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+        ),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        builder: (builder) {
+          return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            return Container(
+              height: 350.0,
+              color:
+                  Colors.transparent, //could change this to Color(0xFF737373),
+              //so you don't have to change MaterialApp canvasColor
+              child: Container(
+                  decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20.0),
+                          topRight: Radius.circular(20.0))),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Center(
+                          child: Text(
+                            name.toString().toUpperCase(),
+                            style: const TextStyle(
+                                fontSize: 24.0, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              height: 100,
+                              child: CircleAvatar(
+                                backgroundImage: NetworkImage(image),
+                              ),
+                            ),
+                            const Text(' X '),
+                            Text(order_qnty.toString()),
+                            const Text(' = '),
+                            Text(
+                              order_total.toString(),
+                              style: const TextStyle(
+                                  fontSize: 18.0, fontWeight: FontWeight.bold),
+                            )
+                          ],
+                        ),
+                        Container(
+                          color: Colors.grey[200],
+                          height: 50,
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: const Icon(Icons.remove),
+                                ),
+                                const Text(
+                                  '1',
+                                  style: TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      order_qnty += 1;
+                                      order_total = price * order_qnty;
+                                    });
+                                  },
+                                  icon: const Icon(Icons.add),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton(
+                                onPressed: () {},
+                                child: const Text('Add To Card')),
+                          ],
+                        )
+                      ],
+                    ),
+                  )),
+            );
+          });
+        });
   }
 
   @override
@@ -118,10 +255,6 @@ class _HomeState extends State<Home> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 50.0),
-              child: allProducts(),
-            ),
             buildFloatingSearchBar(),
           ],
         ),
@@ -146,7 +279,15 @@ class _HomeState extends State<Home> {
                             top: 10,
                             child: CircleAvatar(
                                 child: IconButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      double price = double.parse(prduct.price);
+                                      setState(() {
+                                        order_qnty = 1;
+                                        order_total = price * order_qnty;
+                                      });
+                                      _modalBottomSheetMenu(
+                                          prduct.name, prduct.image, price);
+                                    },
                                     icon: const Icon(Icons.shopping_cart))))
                       ],
                     ))
