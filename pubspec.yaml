@@ -49,6 +49,7 @@ dev_dependencies:
   shared_preferences: ^2.0.7
   material_floating_search_bar: ^0.3.4
   localstorage: ^4.0.0+1
+  badges: ^2.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

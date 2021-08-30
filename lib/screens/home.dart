@@ -2,10 +2,14 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:signuplogin/models/cart.dart';
 import 'package:signuplogin/models/product.dart';
+import 'package:signuplogin/screens/cart.dart';
 import 'package:signuplogin/services/authentication.dart';
+import 'package:signuplogin/services/cart_service.dart';
 import 'package:signuplogin/services/products.dart';
 import 'package:signuplogin/widgets/product_tile.dart';
+import 'package:badges/badges.dart';
 import '../main.dart';
 
 class Home extends StatefulWidget {
@@ -20,11 +24,13 @@ class _HomeState extends State<Home> {
   int order_qnty = 1;
   double order_total = 0;
   List<Product> list = [];
+  Map<String, dynamic> cartItems = {};
 
   @override
   void initState() {
     super.initState();
     getAllProductsOnce();
+    getCartItemsFromLocalStorage();
   }
 
   getAllProductsOnce() async {
@@ -32,6 +38,11 @@ class _HomeState extends State<Home> {
     setState(() {
       isLoading = false;
     });
+  }
+
+  getCartItemsFromLocalStorage() async {
+    cartItems = await CartService().getCartItems();
+    setState(() {});
   }
 
   Widget buildFloatingSearchBar() {
@@ -56,8 +67,20 @@ class _HomeState extends State<Home> {
         FloatingSearchBarAction(
           showIfOpened: false,
           child: CircularButton(
-            icon: const Icon(Icons.shopping_cart),
-            onPressed: () {},
+            icon: (cartItems.isNotEmpty)
+                ? Badge(
+                    badgeContent: Text(
+                      cartItems.length.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    child: const Icon(Icons.shopping_cart))
+                : const Icon(Icons.shopping_cart),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (BuildContext context) {
+                return Cart();
+              }));
+            },
           ),
         ),
         FloatingSearchBarAction.searchToClear(
@@ -118,7 +141,8 @@ class _HomeState extends State<Home> {
     );
   }
 
-  _modalBottomSheetMenu(name, image, price) {
+  _modalBottomSheetMenu(Product product) {
+    double price = double.parse(product.price);
     showModalBottomSheet(
         context: context,
         shape: const RoundedRectangleBorder(
@@ -128,6 +152,7 @@ class _HomeState extends State<Home> {
         ),
         clipBehavior: Clip.antiAliasWithSaveLayer,
         builder: (builder) {
+          // to change the data
           return StatefulBuilder(
               builder: (BuildContext context, StateSetter setState) {
             return Container(
@@ -148,7 +173,7 @@ class _HomeState extends State<Home> {
                       children: [
                         Center(
                           child: Text(
-                            name.toString().toUpperCase(),
+                            product.name.toString().toUpperCase(),
                             style: const TextStyle(
                                 fontSize: 24.0, fontWeight: FontWeight.bold),
                           ),
@@ -160,9 +185,10 @@ class _HomeState extends State<Home> {
                               width: 100,
                               height: 100,
                               child: CircleAvatar(
-                                backgroundImage: NetworkImage(image),
+                                backgroundImage: NetworkImage(product.image),
                               ),
                             ),
+                            Text(product.price),
                             const Text(' X '),
                             Text(order_qnty.toString()),
                             const Text(' = '),
@@ -181,12 +207,19 @@ class _HomeState extends State<Home> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 IconButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    if (order_qnty != 1) {
+                                      setState(() {
+                                        order_qnty -= 1;
+                                        order_total = price * order_qnty;
+                                      });
+                                    }
+                                  },
                                   icon: const Icon(Icons.remove),
                                 ),
-                                const Text(
-                                  '1',
-                                  style: TextStyle(
+                                Text(
+                                  order_qnty.toString(),
+                                  style: const TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold),
                                 ),
@@ -207,7 +240,10 @@ class _HomeState extends State<Home> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  addProductToCart(product);
+                                  Navigator.pop(context);
+                                },
                                 child: const Text('Add To Card')),
                           ],
                         )
@@ -217,6 +253,19 @@ class _HomeState extends State<Home> {
             );
           });
         });
+  }
+
+  addProductToCart(product) {
+    setState(() {
+      cartItems[product.id] = CartItem(
+          productId: product.id,
+          image: product.image,
+          price: product.price,
+          despcription: product.despcription,
+          name: product.name,
+          orderQuantity: order_qnty);
+    });
+    CartService().addToCart(cartItems);
   }
 
   @override
@@ -285,8 +334,7 @@ class _HomeState extends State<Home> {
                                         order_qnty = 1;
                                         order_total = price * order_qnty;
                                       });
-                                      _modalBottomSheetMenu(
-                                          prduct.name, prduct.image, price);
+                                      _modalBottomSheetMenu(prduct);
                                     },
                                     icon: const Icon(Icons.shopping_cart))))
                       ],
@@ -307,7 +355,6 @@ class _HomeState extends State<Home> {
       if (response.statusCode == 200 && response != null) {
         Map<String, dynamic> _body = jsonDecode(response.body);
         if (_body['success']) {
-          // List jsonResponse = json.decode(_body["data"]);
           List jsonResponse = _body["data"];
           list = jsonResponse.map((data) => Product.fromJson(data)).toList();
         }
