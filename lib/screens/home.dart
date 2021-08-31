@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:material_floating_search_bar/material_floating_search_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:signuplogin/models/cart.dart';
 import 'package:signuplogin/models/product.dart';
 import 'package:signuplogin/screens/cart.dart';
 import 'package:signuplogin/services/authentication.dart';
@@ -257,15 +256,16 @@ class _HomeState extends State<Home> {
 
   addProductToCart(product) {
     setState(() {
-      cartItems[product.id] = CartItem(
-          productId: product.id,
-          image: product.image,
-          price: product.price,
-          despcription: product.despcription,
-          name: product.name,
-          orderQuantity: order_qnty);
+      cartItems[product.id] = {
+        'productId': product.id,
+        'image': product.image,
+        'price': product.price,
+        'despcription': product.despcription,
+        'name': product.name,
+        'orderQuantity': order_qnty
+      };
+      CartService().addToCart(cartItems);
     });
-    CartService().addToCart(cartItems);
   }
 
   @override

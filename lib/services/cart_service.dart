@@ -1,4 +1,3 @@
-import 'package:signuplogin/models/cart.dart';
 import 'package:localstorage/localstorage.dart';
 
 class CartService {

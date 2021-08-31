@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:signuplogin/models/cart.dart';
 import 'package:signuplogin/services/cart_service.dart';
 
 class Cart extends StatefulWidget {
@@ -29,15 +28,17 @@ class _CartState extends State<Cart> {
         title: const Text('Cart'),
         backgroundColor: Colors.blue[800],
       ),
-      body: Column(
-        children: cartItems.values.map((item) => cartItem(item)).toList(),
+      body: SingleChildScrollView(
+        child: Column(
+          children: cartItems.values.map((item) => cartItem(item)).toList(),
+        ),
       ),
     );
   }
 
-  Widget cartItem(CartItem item) {
-    double price = double.parse(item.price);
-    double total = price * item.orderQuantity;
+  Widget cartItem(item) {
+    double price = double.parse(item["price"].toString());
+    double total = price * double.parse(item["orderQuantity"].toString());
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -51,13 +52,13 @@ class _CartState extends State<Cart> {
                   width: 80,
                   height: 80,
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage(item.image),
+                    backgroundImage: NetworkImage(item["image"]),
                   ),
                 ),
-                Text(item.price.toString()),
+                Text(item["price"].toString()),
                 const Text(' X '),
                 Text(
-                  item.orderQuantity.toString(),
+                  item["orderQuantity"].toString(),
                   style: const TextStyle(
                       fontSize: 18.0, fontWeight: FontWeight.bold),
                 ),
