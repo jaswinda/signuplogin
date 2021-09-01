@@ -7,7 +7,6 @@ class CartService {
   }
 
   Future<Map<String, dynamic>> getCartItems() async {
-    // return storage.getItem("items") ?? {};
     print("before ready: " + storage.getItem("items").toString());
 
     //wait until ready
