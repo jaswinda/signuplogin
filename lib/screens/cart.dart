@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:signuplogin/services/cart_service.dart';
@@ -10,6 +11,7 @@ class Cart extends StatefulWidget {
 }
 
 class _CartState extends State<Cart> {
+  double total = 0.0;
   Map<String, dynamic> cartItems = {};
   @override
   void initState() {
@@ -19,6 +21,7 @@ class _CartState extends State<Cart> {
 
   getCartItemsFromLocalStorage() async {
     cartItems = await CartService().getCartItems();
+    updateTotal();
     setState(() {});
   }
 
@@ -50,11 +53,61 @@ class _CartState extends State<Cart> {
             )
           : SingleChildScrollView(
               child: Column(
-                children:
-                    cartItems.values.map((item) => mySlideable(item)).toList(),
+                children: [
+                  Card(
+                    color: Colors.blue[900],
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Total: ' + total.toString(),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24.0),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: const [
+                              Text(
+                                'Checkout',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 24.0),
+                              ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Column(
+                    children: cartItems.values
+                        .map((item) => mySlideable(item))
+                        .toList(),
+                  ),
+                ],
               ),
             ),
     );
+  }
+
+  void updateTotal() async {
+    total = 0.0;
+    cartItems.forEach((key, value) {
+      total += (double.parse(cartItems[key]["price"]) *
+          double.parse(cartItems[key]["orderQuantity"].toString()));
+    });
   }
 
   Widget mySlideable(item) {
@@ -97,6 +150,7 @@ class _CartState extends State<Cart> {
     setState(() {
       cartItems.remove(productId);
     });
+    updateTotal();
   }
 
   _modalBottomSheetMenu(product) {
@@ -226,6 +280,7 @@ class _CartState extends State<Cart> {
         'orderQuantity': order_qnty
       };
       CartService().addToCart(cartItems);
+      updateTotal();
       // CartService().addToCart(cartItems);
     });
   }
