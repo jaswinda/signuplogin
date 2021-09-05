@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:signuplogin/screens/payment.dart';
 import 'package:signuplogin/services/cart_service.dart';
 
 class Cart extends StatefulWidget {
@@ -54,43 +55,16 @@ class _CartState extends State<Cart> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  Card(
-                    color: Colors.blue[900],
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Total: ' + total.toString(),
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24.0),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: const [
-                              Text(
-                                'Checkout',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 24.0),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.white,
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  InkWell(
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (BuildContext c) {
+                          return Payment(
+                            cartItems: cartItems,
+                          );
+                        }));
+                      },
+                      child: checkoutButton()),
                   Column(
                     children: cartItems.values
                         .map((item) => mySlideable(item))
@@ -99,6 +73,46 @@ class _CartState extends State<Cart> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget checkoutButton() {
+    return Card(
+      color: Colors.blue[900],
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Total: ' + total.toString(),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24.0),
+                ),
+              ],
+            ),
+            Row(
+              children: const [
+                Text(
+                  'Checkout',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24.0),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white,
+                )
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 

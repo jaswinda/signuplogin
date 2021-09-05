@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:localstorage/localstorage.dart';
+import 'package:http/http.dart' as http;
+import 'package:signuplogin/services/api.dart';
 
 class CartService {
   final LocalStorage storage = new LocalStorage('items');
@@ -15,5 +19,22 @@ class CartService {
     //this will now print 0
     print("after ready: " + storage.getItem("items").toString());
     return storage.getItem("items") ?? {};
+  }
+
+  order(data) async {
+    try {
+      print('got to order');
+      final response = await http.post(Uri.parse(orderApi),
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: data,
+          encoding: Encoding.getByName("utf-8"));
+      // print(response);
+      return response;
+    } catch (e) {
+      return null;
+    }
   }
 }
