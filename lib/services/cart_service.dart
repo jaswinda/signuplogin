@@ -21,9 +21,12 @@ class CartService {
     return storage.getItem("items") ?? {};
   }
 
+  clearCart() {
+    storage.clear();
+  }
+
   order(data) async {
     try {
-      print('got to order');
       final response = await http.post(Uri.parse(orderApi),
           headers: {
             "Accept": "application/json",
@@ -31,7 +34,6 @@ class CartService {
           },
           body: data,
           encoding: Encoding.getByName("utf-8"));
-      // print(response);
       return response;
     } catch (e) {
       return null;

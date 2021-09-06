@@ -61,6 +61,7 @@ class _CartState extends State<Cart> {
                             MaterialPageRoute(builder: (BuildContext c) {
                           return Payment(
                             cartItems: cartItems,
+                            totalToPay: total,
                           );
                         }));
                       },
