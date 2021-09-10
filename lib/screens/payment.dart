@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter_khalti/flutter_khalti.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:signuplogin/screens/home.dart';
@@ -99,14 +100,15 @@ class _PaymentState extends State<Payment> {
         break;
       case '2':
         // print('khalti');
-        Map data = {
-          'token': preferences.getString('token'),
-          'method': selectedPaymentMethod,
-          'order_items': jsonEncode(widget.cartItems),
-          'amount': widget.totalToPay.toString()
-        };
+        _payViaKhalti(preferences.getString('token'));
+        // Map data = {
+        //   'token': preferences.getString('token'),
+        //   'method': selectedPaymentMethod,
+        //   'order_items': jsonEncode(widget.cartItems),
+        //   'amount': widget.totalToPay.toString()
+        // };
 
-        responseHandler(data);
+        // responseHandler(data);
 
         break;
       case '3':
@@ -154,5 +156,40 @@ class _PaymentState extends State<Payment> {
   myScakbar(message) {
     final snackBar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  _payViaKhalti(useraccesstoken) async {
+    FlutterKhalti _flutterKhalti = FlutterKhalti.configure(
+      publicKey: "test_public_key_f87d48757c214fbd912bc7974b2996e1",
+      urlSchemeIOS: "KhaltiPayFlutterExampleSchema",
+      paymentPreferences: [
+        KhaltiPaymentPreference.KHALTI,
+      ],
+    );
+
+    KhaltiProduct product = KhaltiProduct(
+      id: useraccesstoken,
+      amount: widget
+          .totalToPay, //you will have to convert amount into rs, it is in paisas
+      name: "Hello Product",
+    );
+    _flutterKhalti.startPayment(
+      product: product,
+      onSuccess: (onsucessdata) {
+        String transaction_token = onsucessdata["token"];
+        Map data = {
+          'token': useraccesstoken,
+          'method': selectedPaymentMethod,
+          'order_items': jsonEncode(widget.cartItems),
+          'amount': widget.totalToPay.toString(),
+          'transaction_token': transaction_token
+        };
+        responseHandler(data);
+        print("here");
+      },
+      onFaliure: (error) {
+        displayMessage(context, 'Payment was unsucessful.', false);
+      },
+    );
   }
 }
